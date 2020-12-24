@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "snippet-man/cmd"
+import "github.com/miyazi777/snippet-man/cmd"
 
 func main() {
 	cmd.Execute()

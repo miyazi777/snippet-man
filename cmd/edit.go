@@ -16,14 +16,26 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/miyazi777/snippet-man/snippet"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/miyazi777/snippet-man/util"
 
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:   "init",
+func edit(cmd *cobra.Command, args []string) {
+	configDir := filepath.Join(os.Getenv("HOME"), ".config", "snippet-man")
+	fullFilePath := filepath.Join(configDir, "snippets.toml")
+
+	command := fmt.Sprintf("vi %s\n", fullFilePath)
+	util.Run(command, os.Stdin, os.Stdout)
+}
+
+// editCmd represents the edit command
+var editCmd = &cobra.Command{
+	Use:   "edit",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -31,25 +43,19 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	RunE: intialize,
-}
-
-func intialize(cmd *cobra.Command, args []string) error {
-	// snippets file initialize
-	var snippets snippet.Snippets
-	return snippets.Init()
+	Run: edit,
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(editCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

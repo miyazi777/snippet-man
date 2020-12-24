@@ -16,19 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/miyazi777/snippet-man/snippet"
-	"github.com/miyazi777/snippet-man/util"
 
+	"github.com/cheynewallace/tabby"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
-// newCmd represents the new command
-var newCmd = &cobra.Command{
-	Use:   "new",
+// listCmd represents the list command
+var listCmd = &cobra.Command{
+	Use:   "list",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,67 +35,43 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	RunE: newCommand,
+	RunE: list,
 }
 
-func checkAlias(line string) bool {
-	var snippets snippet.Snippets
-	snippets.Load()
-	s := snippets.AliasFilter(line)
-	if s != nil {
-		fmt.Println(color.CyanString("Failed add command. Alias is alreay in use."))
-		return false
-	}
-	return true
-}
-
-func newCommand(cmd *cobra.Command, args []string) error {
-	// input command
-	command, err := util.Scan(color.YellowString("Command >>> "), true, nil)
-	if err != nil {
-		return err
-	}
-
-	// input description
-	description, err := util.Scan(color.GreenString("description >>> "), true, nil)
-	if err != nil {
-		return err
-	}
-
-	tagsInput, err := util.Scan(color.RedString("tags >>> "), false, nil)
-	if err != nil {
-		return err
-	}
-
-	alias, err := util.Scan(color.CyanString("alias >>> "), false, checkAlias)
-	if err != nil {
-		return err
-	}
-
+func list(cmd *cobra.Command, args []string) error {
 	var snippets snippet.Snippets
 	snippets.Load()
 
-	tags := strings.Fields(tagsInput)
-	newSni := snippet.Snippet{
-		Command:     command,
-		Description: description,
-		Tag:         tags,
-		Alias:       alias,
+	tag, _ := cmd.Flags().GetString("tag")
+
+	displaySnippets := snippets.TagFilter(tag)
+
+	t := tabby.New()
+	for _, s := range displaySnippets {
+		tag := strings.Join(s.Tag, ",")
+		t.AddLine(
+			color.CyanString(s.Alias),
+			color.YellowString(s.Command),
+			color.GreenString(s.Description),
+			color.RedString(tag),
+		)
 	}
-	snippets.Add(newSni)
+	t.Print()
+
 	return nil
 }
 
 func init() {
-	rootCmd.AddCommand(newCmd)
+	listCmd.Flags().StringP("tag", "t", "", "search tag")
+	rootCmd.AddCommand(listCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// newCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// newCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

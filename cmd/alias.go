@@ -16,14 +16,41 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/miyazi777/snippet-man/snippet"
+	"errors"
+	"fmt"
+	"os"
 
+	"github.com/miyazi777/snippet-man/snippet"
+	"github.com/miyazi777/snippet-man/util"
+
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:   "init",
+func alias(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Failed exec. Parameter is required.")
+	}
+
+	var snippets snippet.Snippets
+	snippets.Load()
+
+	snippet := snippets.AliasFilter(args[0])
+	if snippet == nil {
+		return errors.New("Not found alias.")
+	}
+
+	// place holder
+	command := inputPlaceholder(snippet.Command)
+
+	// exec command
+	fmt.Printf("%s %s\n", color.GreenString("Exec:"), color.HiYellowString(command))
+	return util.Run(command, os.Stdin, os.Stdout)
+}
+
+// aliasCmd represents the alias command
+var aliasCmd = &cobra.Command{
+	Use:   "alias",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -31,25 +58,19 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	RunE: intialize,
-}
-
-func intialize(cmd *cobra.Command, args []string) error {
-	// snippets file initialize
-	var snippets snippet.Snippets
-	return snippets.Init()
+	RunE: alias,
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(aliasCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// aliasCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// aliasCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

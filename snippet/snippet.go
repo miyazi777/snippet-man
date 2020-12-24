@@ -15,8 +15,10 @@ type Snippets struct {
 }
 
 type Snippet struct {
-	Description string `toml:"description"`
-	Command     string `toml:"command"`
+	Description string   `toml:"description"`
+	Command     string   `toml:"command"`
+	Tag         []string `toml:"tag"`
+	Alias       string   `toml:"alias"`
 }
 
 func (snippets *Snippets) Init() error {
@@ -53,9 +55,49 @@ func (snippets *Snippets) Load() error {
 		return fmt.Errorf("Failed to load config file. %v", err)
 	}
 
-	for _, s := range snippets.Snippets {
-		fmt.Printf("Name: %s\n", s.Command)
+	return nil
+}
+
+func (snippets *Snippets) Add(newSnippet Snippet) error {
+	configDir := filepath.Join(os.Getenv("HOME"), ".config", "snippet-man")
+	fullFilePath := filepath.Join(configDir, "snippets.toml")
+
+	file, err := os.Create(fullFilePath)
+	defer file.Close()
+	if err != nil {
+		fmt.Printf("Fatal to save file. err: %s", err)
+		return err
 	}
 
+	snippets.Snippets = append(snippets.Snippets, newSnippet)
+
+	toml.NewEncoder(file).Encode(snippets)
+	return nil
+}
+
+func (snippets *Snippets) TagFilter(tag string) []Snippet {
+	var filteredSnippets []Snippet
+
+	if tag != "" {
+		for _, s := range snippets.Snippets {
+			for _, t := range s.Tag {
+				if t == tag {
+					filteredSnippets = append(filteredSnippets, s)
+					break
+				}
+			}
+		}
+	} else {
+		filteredSnippets = snippets.Snippets
+	}
+	return filteredSnippets
+}
+
+func (snippets *Snippets) AliasFilter(alias string) *Snippet {
+	for _, s := range snippets.Snippets {
+		if s.Alias == alias {
+			return &s
+		}
+	}
 	return nil
 }
