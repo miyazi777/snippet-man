@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,12 +26,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func edit(cmd *cobra.Command, args []string) {
+func edit(cmd *cobra.Command, args []string) error {
 	configDir := filepath.Join(os.Getenv("HOME"), ".config", "snippet-man")
 	fullFilePath := filepath.Join(configDir, "snippets.toml")
 
-	command := fmt.Sprintf("vi %s\n", fullFilePath)
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		return errors.New("Not found $EDITOR.")
+	}
+
+	command := fmt.Sprintf("%s %s\n", editor, fullFilePath)
 	util.Run(command, os.Stdin, os.Stdout)
+	return nil
 }
 
 // editCmd represents the edit command
@@ -38,7 +45,7 @@ var editCmd = &cobra.Command{
 	Use:   "edit",
 	Short: "Open the snippet in an editor(vi).",
 	Long:  "",
-	Run:   edit,
+	RunE:  edit,
 }
 
 func init() {
