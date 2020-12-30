@@ -40,6 +40,8 @@ func alias(cmd *cobra.Command, args []string) error {
 		return errors.New("Not found alias.")
 	}
 
+	fmt.Printf("%s %s\n", color.GreenString("Command:"), color.HiYellowString(snippet.Command))
+
 	// place holder
 	command := inputPlaceholder(snippet.Command)
 
