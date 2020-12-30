@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/miyazi777/snippet-man/snippet"
 	"github.com/miyazi777/snippet-man/util"
@@ -31,11 +32,12 @@ func alias(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Failed exec. Parameter is required.")
 	}
+	alias := strings.Join(args, " ")
 
 	var snippets snippet.Snippets
 	snippets.Load()
 
-	snippet := snippets.AliasFilter(args[0])
+	snippet := snippets.AliasFilter(alias)
 	if snippet == nil {
 		return errors.New("Not found alias.")
 	}
