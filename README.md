@@ -1,5 +1,10 @@
 My snippet manager for command line interface.
 
+# Install
+
+```
+go get github.com/miyazi777/snippet-man
+```
 
 # Commands
 
