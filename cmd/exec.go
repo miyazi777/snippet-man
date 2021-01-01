@@ -30,8 +30,9 @@ import (
 )
 
 type Placeholder struct {
-	Match string
-	Param string
+	Match        string
+	Param        string
+	DefaultParam string
 }
 
 func inputPlaceholder(command string) string {
@@ -42,18 +43,37 @@ func inputPlaceholder(command string) string {
 	var placeholders []Placeholder
 	if len(params) > 0 {
 		for _, p := range params {
-			placeholders = append(placeholders, Placeholder{Match: p[0], Param: p[1]})
+			param, defaultParam := parseParam(p[1])
+			placeholders = append(placeholders, Placeholder{Match: p[0], Param: param, DefaultParam: defaultParam})
 		}
 	}
 
 	newCommand := command
 	for _, placeholder := range placeholders {
-		prompt := fmt.Sprintf("%s > ", placeholder.Param)
-		input, _ := util.Scan(color.HiYellowString(prompt), true, nil)
-		newCommand = strings.Replace(newCommand, placeholder.Match, input, 1)
+		if placeholder.DefaultParam == "" {
+			prompt := fmt.Sprintf("%s > ", placeholder.Param)
+			input, _ := util.Scan(color.HiYellowString(prompt), true, nil)
+			newCommand = strings.Replace(newCommand, placeholder.Match, input, 1)
+		} else {
+			prompt := fmt.Sprintf("%s [Defualt: %s] > ", placeholder.Param, placeholder.DefaultParam)
+			input, _ := util.Scan(color.HiYellowString(prompt), false, nil)
+			if input == "" {
+				input = placeholder.DefaultParam
+			}
+			newCommand = strings.Replace(newCommand, placeholder.Match, input, 1)
+		}
 	}
 
 	return newCommand
+}
+
+func parseParam(param string) (string, string) {
+	p := strings.Split(param, ":")
+	if len(p) == 1 {
+		return p[0], ""
+	}
+
+	return p[0], p[1]
 }
 
 func exec(cmd *cobra.Command, args []string) error {
